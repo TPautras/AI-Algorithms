@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Search in motion · Sudoku</title><style>__STYLE__
+.grid-note{font-size:10px;color:#526379;margin-top:6px}</style></head>
+<body><main class="player">
+  <header><div><div class="eyebrow">LAB 03 / SEARCH IN MOTION · SUDOKU</div><h1 id="name">Search trace</h1></div><span id="seed" class="badge"></span></header>
+  <div class="metrics"><div><span id="costLabel">Current cost</span><strong id="cost"></strong></div><div><span>Best found so far ↓</span><strong id="best"></strong></div><div><span>Objective evaluations</span><strong id="evaluation"></strong></div></div>
+  <div class="view-controls">
+    <label>Grid <select id="route" aria-label="Displayed grid"><option value="current">Current grid</option><option value="best">Best archived grid</option><option value="candidate">Candidate grid</option></select></label>
+  </div>
+  <div id="topology" class="topology"></div>
+  <div class="workspace">
+    <section class="map"><h2 id="mapLabel">One grid at a time</h2><svg id="map" viewBox="0 0 390 390" role="img" aria-label="A 9 by 9 Sudoku grid; clues in bold, cells in conflict shaded, changed cells outlined"></svg>
+    <div class="legend"><span><b>9</b> clue</span><span class="teal">9 placed digit</span><span style="color:#b54735">■ cell in conflict</span><span class="orange">□ changed since the previous frame</span></div></section>
+    <section class="insight"><h2>Progress through the search</h2><svg id="curve" viewBox="0 0 510 195" role="img" aria-label="Current and best cost by objective evaluations"></svg>
+    <div class="legend"><span class="teal" id="curveLegend">━ Current cost</span><span class="purple">┄ Best so far</span></div>
+    <div id="decision" class="decision"></div>
+    <svg id="diagnostic" viewBox="0 0 510 112" role="img" aria-label="Algorithm diagnostic"></svg></section>
+  </div>
+  <div class="controls"><button id="play" aria-label="Play animation">Play</button><button id="back" aria-label="Previous frame">←</button><button id="forward" aria-label="Next frame">→</button><input id="scrub" type="range" min="0" value="0" aria-label="Trace frame"><label>Speed <select id="speed"><option value="700">0.5×</option><option value="350" selected>1×</option><option value="120">3×</option></select></label></div>
+  <div class="foot"><span id="frame"></span><span>Pause, step, and inspect. No autoplay.</span></div>
+  <p id="caption" class="caption"></p>
+  <details><summary>Run settings</summary><pre id="settings"></pre></details>
+  <noscript>JavaScript is required for playback. Use the static figures in the notebook.</noscript>
+</main><script id="trace-data" type="application/json">__DATA__</script><script>__SCRIPT__</script></body></html>

@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Search in motion</title><style>__STYLE__</style></head>
+<body><main class="player">
+  <header><div><div class="eyebrow">LAB 03 / SEARCH IN MOTION</div><h1 id="name">Search trace</h1></div><span id="seed" class="badge"></span></header>
+  <div class="metrics"><div><span id="costLabel">Current cost</span><strong id="cost"></strong></div><div><span>Best found so far ↓</span><strong id="best"></strong></div><div><span>Objective evaluations</span><strong id="evaluation"></strong></div></div>
+  <div class="view-controls">
+    <label>Layout <select id="layout" aria-label="Layout"><option value="geometry">Irregular map · fixed positions</option><option value="circle">Tour order · topology aid</option></select></label>
+    <label>Tour <select id="route" aria-label="Displayed tour"><option value="current">Current tour</option><option value="best">Best archived tour</option><option value="candidate">Candidate tour</option></select></label>
+    <label>Inspect <select id="focus" aria-label="Inspect a city"><option value="all">All cities</option></select></label>
+  </div>
+  <div id="topology" class="topology"></div>
+  <div class="workspace">
+    <section class="map"><h2 id="mapLabel">One tour at a time</h2><svg id="map" viewBox="0 0 510 395" role="img" aria-label="One closed tour; circular view and city inspection distinguish its true edges"></svg>
+    <div class="legend"><span class="teal">━ Displayed tour</span><span>● Selected city</span><span>IDs: see city key below</span></div></section>
+    <section class="insight"><h2>Progress through the search</h2><svg id="curve" viewBox="0 0 510 195" role="img" aria-label="Current and best cost by objective evaluations"></svg>
+    <div class="legend"><span class="teal" id="curveLegend">━ Current cost</span><span class="purple">┄ Best so far</span></div>
+    <div id="decision" class="decision"></div>
+    <svg id="diagnostic" viewBox="0 0 510 112" role="img" aria-label="Algorithm diagnostic"></svg></section>
+  </div>
+  <div class="controls"><button id="play" aria-label="Play animation">Play</button><button id="back" aria-label="Previous frame">←</button><button id="forward" aria-label="Next frame">→</button><input id="scrub" type="range" min="0" value="0" aria-label="Trace frame"><label>Speed <select id="speed"><option value="700">0.5×</option><option value="350" selected>1×</option><option value="120">3×</option></select></label></div>
+  <div class="foot"><span id="frame"></span><span>Pause, step, and inspect. No autoplay.</span></div>
+  <p id="caption" class="caption"></p>
+  <details><summary>City key & run settings</summary><p id="cities"></p><pre id="settings"></pre></details>
+  <noscript>JavaScript is required for playback. Use the static figures in the notebook.</noscript>
+</main><script id="trace-data" type="application/json">__DATA__</script><script>__SCRIPT__</script></body></html>

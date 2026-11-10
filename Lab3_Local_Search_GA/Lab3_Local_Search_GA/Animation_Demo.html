@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Search in motion</title><style>*{box-sizing:border-box}body{margin:0;background:#fff;color:#182b45;font:14px/1.45 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.player{max-width:1160px;margin:0 auto;border:1px solid #dbe5ef;border-radius:16px;overflow:hidden;background:#fff}header{background:#152941;color:white;padding:20px 24px;display:flex;justify-content:space-between;align-items:center}.eyebrow{font-size:10px;letter-spacing:2px;color:#9de2dc;font-weight:700}h1{font-size:25px;margin:4px 0 0;letter-spacing:-.5px}.badge{font-size:12px;padding:6px 10px;border:1px solid #63778d;border-radius:30px;color:#e5f2ff}.metrics{display:grid;grid-template-columns:repeat(3,1fr);padding:17px 24px;background:#f3f7fb;gap:14px;border-bottom:1px solid #dbe5ef}.metrics span{font-size:11px;color:#526379;display:block}.metrics strong{font-size:24px;font-variant-numeric:tabular-nums;letter-spacing:-.5px;font-weight:700}.metrics div:nth-child(2) strong{color:#7059b8}.workspace{display:grid;grid-template-columns:1fr 1fr;gap:23px;padding:17px 24px 8px}h2{font-size:12px;font-weight:700;margin:0 0 8px;color:#43536b}svg{width:100%;height:auto;display:block;overflow:visible}svg text{font-family:inherit;font-size:11px;fill:#526379}.legend{display:flex;gap:14px;font-size:10px;align-items:center;color:#526379}.teal{color:#087f8c}.orange{color:#bc5929}.purple{color:#7059b8}.decision{background:#f3f7fb;padding:9px 12px;border-radius:8px;font-size:12px;min-height:49px;margin:11px 0 3px}.decision b{font-size:13px;display:block;color:#182b45}.controls{display:flex;align-items:center;gap:8px;padding:12px 24px 4px;border-top:1px solid #e5edf3}button,select{border:1px solid #cbd7e3;background:white;border-radius:7px;color:#182b45;font:inherit;padding:7px 10px;cursor:pointer}button:hover,select:hover{background:#eef7f7}button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid #d26532;outline-offset:2px}#play{min-width:66px;background:#087f8c;color:#fff;border-color:#087f8c;font-weight:700}input[type=range]{flex:1;min-width:30px;accent-color:#087f8c}label{display:flex;align-items:center;gap:6px;font-size:11px}.foot{padding:7px 24px;display:flex;justify-content:space-between;color:#526379;font-size:10px}.caption{padding:0 24px;color:#526379;font-size:10px;margin:4px 0 10px}details{font-size:10px;color:#526379;padding:0 24px 12px}summary{cursor:pointer}pre{white-space:pre-wrap;font-size:10px}#cities{line-height:1.8}#diagnostic{margin-top:5px}@media(max-width:620px){header{padding:15px}h1{font-size:21px}.metrics{padding:12px 15px}.metrics strong{font-size:19px}.workspace{grid-template-columns:1fr;padding:14px 15px;gap:14px}.map svg{max-height:290px}.controls{padding:12px 15px 4px;flex-wrap:wrap}.foot{padding:7px 15px}.caption,details{padding-left:15px;padding-right:15px}.foot span:last-child{display:none}.badge{font-size:10px}}
+.view-controls{display:flex;gap:14px;flex-wrap:wrap;padding:12px 24px;background:#fff;border-bottom:1px solid #e5edf3}.view-controls label{font-size:11px;color:#43536b}.view-controls select{max-width:230px;font-size:12px;padding:6px 9px}.topology{padding:9px 24px;background:#edf8f5;color:#17685d;font-size:12px;min-height:36px}.controls button{flex:0 0 auto;line-height:1.2;min-height:32px}.controls input{min-height:30px}#map{overflow:visible}@media(max-width:620px){.view-controls{padding:10px 15px;gap:9px}.topology{padding:9px 15px}}
+</style></head>
+<body><main class="player">
+  <header><div><div class="eyebrow">LAB 03 / SEARCH IN MOTION</div><h1 id="name">Search trace</h1></div><span id="seed" class="badge"></span></header>
+  <div class="metrics"><div><span id="costLabel">Current cost</span><strong id="cost"></strong></div><div><span>Best found so far ↓</span><strong id="best"></strong></div><div><span>Objective evaluations</span><strong id="evaluation"></strong></div></div>
+  <div class="view-controls">
+    <label>Layout <select id="layout" aria-label="Layout"><option value="geometry">Irregular map · fixed positions</option><option value="circle">Tour order · topology aid</option></select></label>
+    <label>Tour <select id="route" aria-label="Displayed tour"><option value="current">Current tour</option><option value="best">Best archived tour</option><option value="candidate">Candidate tour</option></select></label>
+    <label>Inspect <select id="focus" aria-label="Inspect a city"><option value="all">All cities</option></select></label>
+  </div>
+  <div id="topology" class="topology"></div>
+  <div class="workspace">
+    <section class="map"><h2 id="mapLabel">One tour at a time</h2><svg id="map" viewBox="0 0 510 395" role="img" aria-label="One closed tour; circular view and city inspection distinguish its true edges"></svg>
+    <div class="legend"><span class="teal">━ Displayed tour</span><span>● Selected city</span><span>IDs: see city key below</span></div></section>
+    <section class="insight"><h2>Progress through the search</h2><svg id="curve" viewBox="0 0 510 195" role="img" aria-label="Current and best cost by objective evaluations"></svg>
+    <div class="legend"><span class="teal" id="curveLegend">━ Current cost</span><span class="purple">┄ Best so far</span></div>
+    <div id="decision" class="decision"></div>
+    <svg id="diagnostic" viewBox="0 0 510 112" role="img" aria-label="Algorithm diagnostic"></svg></section>
+  </div>
+  <div class="controls"><button id="play" aria-label="Play animation">Play</button><button id="back" aria-label="Previous frame">←</button><button id="forward" aria-label="Next frame">→</button><input id="scrub" type="range" min="0" value="0" aria-label="Trace frame"><label>Speed <select id="speed"><option value="700">0.5×</option><option value="350" selected>1×</option><option value="120">3×</option></select></label></div>
+  <div class="foot"><span id="frame"></span><span>Pause, step, and inspect. No autoplay.</span></div>
+  <p id="caption" class="caption"></p>
+  <details><summary>City key & run settings</summary><p id="cities"></p><pre id="settings"></pre></details>
+  <noscript>JavaScript is required for playback. Use the static figures in the notebook.</noscript>
+</main><script id="trace-data" type="application/json">{"name":"Guided example","seed":7,"metric":"euclidean","mode":"demo","layout":"geometry","names":["Paris","Lille","Reims","Strasbourg","Dijon","Besan\u00e7on","Lyon","Grenoble","Nice","Marseille","Montpellier","Toulouse","Bordeaux","Nantes","Rennes","Brest","Caen","Rouen","Orl\u00e9ans","Clermont-Ferrand","Tours","Poitiers","Limoges","Nancy"],"xy":[[48.0,80.0],[55.0,98.0],[65.0,84.0],[92.0,72.0],[68.0,58.0],[82.0,53.0],[68.0,36.0],[78.0,28.0],[93.0,12.0],[70.0,10.0],[55.0,14.0],[36.0,20.0],[20.0,35.0],[18.0,60.0],[17.0,76.0],[0.0,87.0],[31.0,85.0],[43.0,90.0],[46.0,67.0],[52.0,44.0],[35.0,59.0],[31.0,46.0],[40.0,35.0],[77.0,78.0]],"frames":[{"evaluations":1,"cost":1218.902227224739,"best":1218.902227224739,"accepted":null,"delta":null,"temperature":null,"probability":null,"generation":null,"note":"Starting tour: one evaluation. Current = best archived, no candidate yet. Step with \u2192 and read this box at every frame.","tour":[0,16,5,19,4,15,13,11,1,20,18,9,8,2,22,14,7,17,6,23,21,3,10,12],"best_tour":[0,16,5,19,4,15,13,11,1,20,18,9,8,2,22,14,7,17,6,23,21,3,10,12]},{"evaluations":2,"cost":1170.2132868599624,"best":1170.2132868599624,"accepted":true,"delta":-48.6889403647765,"temperature":null,"probability":null,"generation":null,"note":"The candidate costs less (\u0394 < 0): accepted. Current and best archived move together. Select Candidate tour to see the proposal, then Current tour.","tour":[0,16,5,19,4,15,13,11,1,17,7,14,22,2,8,9,18,20,6,23,21,3,10,12],"best_tour":[0,16,5,19,4,15,13,11,1,17,7,14,22,2,8,9,18,20,6,23,21,3,10,12],"candidate":[0,16,5,19,4,15,13,11,1,17,7,14,22,2,8,9,18,20,6,23,21,3,10,12],"candidate_cost":1170.2132868599624},{"evaluations":3,"cost":1122.4785227429136,"best":1122.4785227429136,"accepted":true,"delta":-47.734764117048826,"temperature":null,"probability":null,"generation":null,"note":"Another improving reversal, accepted. The current curve and the best curve still coincide.","tour":[0,16,5,19,4,15,13,11,1,17,7,6,20,18,9,8,2,22,14,23,21,3,10,12],"best_tour":[0,16,5,19,4,15,13,11,1,17,7,6,20,18,9,8,2,22,14,23,21,3,10,12],"candidate":[0,16,5,19,4,15,13,11,1,17,7,6,20,18,9,8,2,22,14,23,21,3,10,12],"candidate_cost":1122.4785227429136},{"evaluations":4,"cost":1122.4785227429136,"best":1122.4785227429136,"accepted":false,"delta":14.786704819796796,"temperature":null,"probability":null,"generation":null,"note":"\u0394 > 0: rejected. The current tour does not change, but the evaluation was counted (3 \u2192 4).","tour":[0,16,5,19,4,15,13,11,1,17,7,6,20,18,9,8,2,22,14,23,21,3,10,12],"best_tour":[0,16,5,19,4,15,13,11,1,17,7,6,20,18,9,8,2,22,14,23,21,3,10,12],"candidate":[0,16,5,22,2,8,9,18,20,6,7,17,1,11,13,15,4,19,14,23,21,3,10,12],"candidate_cost":1137.2652275627104},{"evaluations":5,"cost":1081.0703436323886,"best":1081.0703436323886,"accepted":true,"delta":-41.408179110525,"temperature":null,"probability":null,"generation":null,"note":"Accepted: \u0394 < 0. Inspect a city to check its two edges before and after the move.","tour":[0,16,5,19,4,15,13,18,20,6,7,17,1,11,9,8,2,22,14,23,21,3,10,12],"best_tour":[0,16,5,19,4,15,13,18,20,6,7,17,1,11,9,8,2,22,14,23,21,3,10,12],"candidate":[0,16,5,19,4,15,13,18,20,6,7,17,1,11,9,8,2,22,14,23,21,3,10,12],"candidate_cost":1081.0703436323886},{"evaluations":6,"cost":1081.0703436323886,"best":1081.0703436323886,"accepted":false,"delta":15.444780321346798,"temperature":null,"probability":null,"generation":null,"note":"Rejected: \u0394 > 0. Hill climbing never accepts such a move.","tour":[0,16,5,19,4,15,13,18,20,6,7,17,1,11,9,8,2,22,14,23,21,3,10,12],"best_tour":[0,16,5,19,4,15,13,18,20,6,7,17,1,11,9,8,2,22,14,23,21,3,10,12],"candidate":[0,16,5,19,6,20,18,13,15,4,7,17,1,11,9,8,2,22,14,23,21,3,10,12],"candidate_cost":1096.5151239537354},{"evaluations":7,"cost":1088.298808107773,"best":1081.0703436323886,"accepted":true,"delta":7.228464475384499,"temperature":null,"probability":null,"generation":null,"note":"\u0394 > 0 and yet accepted, as simulated annealing sometimes does: the current cost rises and the best archived tour keeps the previous tour. Compare Current tour and Best archived tour.","tour":[0,16,5,19,4,15,13,18,20,6,11,1,17,7,9,8,2,22,14,23,21,3,10,12],"best_tour":[0,16,5,19,4,15,13,18,20,6,7,17,1,11,9,8,2,22,14,23,21,3,10,12],"candidate":[0,16,5,19,4,15,13,18,20,6,11,1,17,7,9,8,2,22,14,23,21,3,10,12],"candidate_cost":1088.298808107773},{"evaluations":8,"cost":1085.0031785033443,"best":1081.0703436323886,"accepted":true,"delta":-3.2956296044287683,"temperature":null,"probability":null,"generation":null,"note":"Accepted: \u0394 < 0, but the current cost stays above the best archived: the archive does not move.","tour":[0,16,5,19,4,15,13,18,22,2,8,9,7,17,1,11,6,20,14,23,21,3,10,12],"best_tour":[0,16,5,19,4,15,13,18,20,6,7,17,1,11,9,8,2,22,14,23,21,3,10,12],"candidate":[0,16,5,19,4,15,13,18,22,2,8,9,7,17,1,11,6,20,14,23,21,3,10,12],"candidate_cost":1085.0031785033443},{"evaluations":9,"cost":1001.0721539699229,"best":1001.0721539699229,"accepted":true,"delta":-83.93102453342146,"temperature":null,"probability":null,"generation":null,"note":"Accepted and better than the archive: the best archived tour is updated.","tour":[0,16,5,19,4,15,13,18,22,2,8,9,7,17,1,3,21,23,14,20,6,11,10,12],"best_tour":[0,16,5,19,4,15,13,18,22,2,8,9,7,17,1,3,21,23,14,20,6,11,10,12],"candidate":[0,16,5,19,4,15,13,18,22,2,8,9,7,17,1,3,21,23,14,20,6,11,10,12],"candidate_cost":1001.0721539699229},{"evaluations":10,"cost":1001.0721539699229,"best":1001.0721539699229,"accepted":false,"delta":17.542908677308446,"temperature":null,"probability":null,"generation":null,"note":"Rejected: \u0394 > 0. The dashed best curve stays flat while nothing better is found.","tour":[0,16,5,19,4,15,13,18,22,2,8,9,7,17,1,3,21,23,14,20,6,11,10,12],"best_tour":[0,16,5,19,4,15,13,18,22,2,8,9,7,17,1,3,21,23,14,20,6,11,10,12],"candidate":[0,16,5,19,4,15,13,18,22,2,8,9,7,17,1,3,21,6,20,14,23,11,10,12],"candidate_cost":1018.6150626472313},{"evaluations":11,"cost":962.6882457859108,"best":962.6882457859108,"accepted":true,"delta":-38.38390818401206,"temperature":null,"probability":null,"generation":null,"note":"Accepted: \u0394 < 0, a new best.","tour":[0,16,5,19,4,15,13,18,3,1,17,7,9,8,2,22,21,23,14,20,6,11,10,12],"best_tour":[0,16,5,19,4,15,13,18,3,1,17,7,9,8,2,22,21,23,14,20,6,11,10,12],"candidate":[0,16,5,19,4,15,13,18,3,1,17,7,9,8,2,22,21,23,14,20,6,11,10,12],"candidate_cost":962.6882457859108},{"evaluations":12,"cost":962.6882457859108,"best":962.6882457859108,"accepted":false,"delta":20.00109509546587,"temperature":null,"probability":null,"generation":null,"note":"Rejected: \u0394 > 0. End of the example: 12 evaluations, 11 proposals, 7 accepted.","tour":[0,16,5,19,4,15,13,18,3,1,17,7,9,8,2,22,21,23,14,20,6,11,10,12],"best_tour":[0,16,5,19,4,15,13,18,3,1,17,7,9,8,2,22,21,23,14,20,6,11,10,12],"candidate":[0,16,5,19,4,15,13,18,3,1,17,22,2,8,9,7,21,23,14,20,6,11,10,12],"candidate_cost":982.6893408813767}],"events":[{"evaluations":1,"cost":1218.902227224739,"best":1218.902227224739,"accepted":null,"delta":null,"temperature":null,"probability":null,"generation":null,"note":"Starting tour: one evaluation. Current = best archived, no candidate yet. Step with \u2192 and read this box at every frame."},{"evaluations":2,"cost":1170.2132868599624,"best":1170.2132868599624,"accepted":true,"delta":-48.6889403647765,"temperature":null,"probability":null,"generation":null,"note":"The candidate costs less (\u0394 < 0): accepted. Current and best archived move together. Select Candidate tour to see the proposal, then Current tour."},{"evaluations":3,"cost":1122.4785227429136,"best":1122.4785227429136,"accepted":true,"delta":-47.734764117048826,"temperature":null,"probability":null,"generation":null,"note":"Another improving reversal, accepted. The current curve and the best curve still coincide."},{"evaluations":4,"cost":1122.4785227429136,"best":1122.4785227429136,"accepted":false,"delta":14.786704819796796,"temperature":null,"probability":null,"generation":null,"note":"\u0394 > 0: rejected. The current tour does not change, but the evaluation was counted (3 \u2192 4)."},{"evaluations":5,"cost":1081.0703436323886,"best":1081.0703436323886,"accepted":true,"delta":-41.408179110525,"temperature":null,"probability":null,"generation":null,"note":"Accepted: \u0394 < 0. Inspect a city to check its two edges before and after the move."},{"evaluations":6,"cost":1081.0703436323886,"best":1081.0703436323886,"accepted":false,"delta":15.444780321346798,"temperature":null,"probability":null,"generation":null,"note":"Rejected: \u0394 > 0. Hill climbing never accepts such a move."},{"evaluations":7,"cost":1088.298808107773,"best":1081.0703436323886,"accepted":true,"delta":7.228464475384499,"temperature":null,"probability":null,"generation":null,"note":"\u0394 > 0 and yet accepted, as simulated annealing sometimes does: the current cost rises and the best archived tour keeps the previous tour. Compare Current tour and Best archived tour."},{"evaluations":8,"cost":1085.0031785033443,"best":1081.0703436323886,"accepted":true,"delta":-3.2956296044287683,"temperature":null,"probability":null,"generation":null,"note":"Accepted: \u0394 < 0, but the current cost stays above the best archived: the archive does not move."},{"evaluations":9,"cost":1001.0721539699229,"best":1001.0721539699229,"accepted":true,"delta":-83.93102453342146,"temperature":null,"probability":null,"generation":null,"note":"Accepted and better than the archive: the best archived tour is updated."},{"evaluations":10,"cost":1001.0721539699229,"best":1001.0721539699229,"accepted":false,"delta":17.542908677308446,"temperature":null,"probability":null,"generation":null,"note":"Rejected: \u0394 > 0. The dashed best curve stays flat while nothing better is found."},{"evaluations":11,"cost":962.6882457859108,"best":962.6882457859108,"accepted":true,"delta":-38.38390818401206,"temperature":null,"probability":null,"generation":null,"note":"Accepted: \u0394 < 0, a new best."},{"evaluations":12,"cost":962.6882457859108,"best":962.6882457859108,"accepted":false,"delta":20.00109509546587,"temperature":null,"probability":null,"generation":null,"note":"Rejected: \u0394 > 0. End of the example: 12 evaluations, 11 proposals, 7 accepted."}],"total":12,"steps":11,"settings":{"origin":"Hand-authored 2-opt reversals with scripted decisions; no search algorithm","start":"The initial tour of Section 1 (random_tour, seed 7)"}}</script><script>(() => {
+  'use strict';
+  const D=JSON.parse(document.getElementById('trace-data').textContent);
+  const $=id=>document.getElementById(id),F=D.frames,ga=D.mode==='ga',sa=D.mode==='sa',demo=D.mode==='demo';
+  const fmt=n=>Number(n).toLocaleString('en-US',{maximumFractionDigits:1});
+  const safe=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const line=(x1,y1,x2,y2,color='#dce5ed',extra='')=>`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" ${extra}/>`;
+  const txt=(x,y,s,extra='')=>`<text x="${x}" y="${y}" font-size="11" font-family="sans-serif" fill="#526379" ${extra}>${safe(s)}</text>`;
+  const path=(points,color,extra='')=>`<polyline points="${points.map(p=>p.join(',')).join(' ')}" fill="none" stroke="${color}" stroke-width="2.3" ${extra}/>`;
+  let index=0,timer=null;
+  $('name').textContent=D.name;$('seed').textContent=`Seed ${D.seed} · ${D.metric}`;
+  $('scrub').max=F.length-1;$('layout').value=D.layout||'geometry';$('route').value='current';$('focus').value='all';
+  $('focus').innerHTML='<option value="all">All cities</option>'+D.names.map((name,i)=>`<option value="${i}">${i} · ${safe(name)}</option>`).join('');
+  $('cities').textContent=D.names.map((n,i)=>`${i} ${n}`).join('  ·  ');
+  $('settings').textContent=JSON.stringify(D.settings,null,2);
+  if(ga){$('costLabel').textContent='Population best cost';$('curveLegend').textContent='━ Population best';}
+  $('caption').textContent='One tour is drawn at a time. Circular view shows visiting order; costs always use the original coordinates. '+
+    'Geometric crossings do not create graph connections. Inspect a city to highlight only its two incident edges. '+
+    (demo?'This guided example replays hand-authored moves and decisions, not a search result; your runs use the same controls.':'Tour frames are sampled; evaluation counts are exact.');
+  const xs=D.xy.map(p=>p[0]),ys=D.xy.map(p=>p[1]);
+  const minx=Math.min(...xs),maxx=Math.max(...xs),miny=Math.min(...ys),maxy=Math.max(...ys);
+  const scale=Math.min(430/Math.max(1,maxx-minx),320/Math.max(1,maxy-miny));
+  const ox=(510-(maxx-minx)*scale)/2,oy=(395-(maxy-miny)*scale)/2;
+  const geometric=D.xy.map(p=>[ox+(p[0]-minx)*scale,395-oy-(p[1]-miny)*scale]);
+  const values=D.events.flatMap(e=>[e.cost,e.best]);
+  const vmin=values.reduce((a,b)=>Math.min(a,b),Infinity)*.94,vmax=values.reduce((a,b)=>Math.max(a,b),-Infinity)*1.03;
+  const cx=e=>52+435*(e-1)/Math.max(1,D.total-1),cy=v=>152-130*(v-vmin)/Math.max(1,vmax-vmin);
+  const rawMaxT=D.events.map(e=>e.temperature||0).reduce((a,b)=>Math.max(a,b),0);
+  const maxT=rawMaxT>0?rawMaxT:1;
+  function drawMap(f){
+    let tour=f.tour,title=ga?'Population champion':'Current tour',cost=f.cost;
+    if($('route').value==='best'){tour=f.best_tour;title='Best archived tour';cost=f.best;}
+    if($('route').value==='candidate'){
+      if(f.candidate){tour=f.candidate;title='Candidate tour';cost=f.candidate_cost;}
+      else title='No candidate recorded · current tour';
+    }
+    const n=D.names.length,degree=Array(n).fill(0),edges=tour.map((v,i)=>[v,tour[(i+1)%n]]);
+    edges.forEach(([a,b])=>{degree[a]++;degree[b]++;});
+    if(tour.length!==n||new Set(tour).size!==n||tour.some(v=>!Number.isInteger(v)||v<0||v>=n)||degree.some(v=>v!==2))throw Error('Invalid cycle in trace.');
+    const focus=$('focus').value==='all'?null:Number($('focus').value);
+    if(focus===null)$('topology').textContent=`Valid single cycle · ${n} cities · ${n} edges · degree 2 at every city`;
+    else {
+      const at=tour.indexOf(focus),prev=tour[(at+n-1)%n],next=tour[(at+1)%n];
+      $('topology').textContent=`${D.names[focus]} (${focus}) · degree 2 · neighbors: ${D.names[prev]} (${prev}) and ${D.names[next]} (${next})`;
+    }
+    const circle=$('layout').value==='circle';let coords=geometric;
+    if(circle){coords=Array(n);tour.forEach((city,i)=>{const a=-Math.PI/2+2*Math.PI*i/n;coords[city]=[255+155*Math.cos(a),198+155*Math.sin(a)];});}
+    let s='<rect x="0" y="0" width="510" height="395" rx="9" fill="#f7fafc"/>';
+    if(!circle){for(let x=35;x<490;x+=45)s+=line(x,18,x,377,'#edf1f5');for(let y=35;y<377;y+=45)s+=line(20,y,490,y,'#edf1f5');}
+    edges.forEach(([a,b])=>{const active=focus===null||a===focus||b===focus;s+=path([coords[a],coords[b]],active?'#087f8c':'#c2ccd6',`opacity="${active?1:.25}" data-edge="${a}-${b}"`);});
+    coords.forEach((p,i)=>{s+=`<circle cx="${p[0]}" cy="${p[1]}" r="8" fill="#f7fafc"/><circle cx="${p[0]}" cy="${p[1]}" r="${i===focus?6:4}" fill="${i===focus?'#efb752':'#fff'}" stroke="#182b45" stroke-width="1.2"><title>${safe(D.names[i])} · degree ${degree[i]}</title></circle>`+txt(p[0]+8,p[1]-7,i,'font-weight="600"');});
+    if(circle)s+=txt(255,193,'VISITING ORDER','text-anchor="middle" font-weight="700"')+txt(255,214,'One city · two neighbors','text-anchor="middle"');
+    $('map').innerHTML=s;$('mapLabel').textContent=`${title} · cost ${fmt(cost)}`;
+  }
+  function drawCurve(f){
+    let s='';
+    for(let k=0;k<4;k++){let v=vmin+(vmax-vmin)*k/3,y=cy(v);s+=line(52,y,490,y)+txt(44,y+4,fmt(v),'text-anchor="end"');}
+    for(let k=0;k<3;k++){let e=1+(D.total-1)*k/2;s+=txt(cx(e),173,Math.round(e),'text-anchor="middle"');}
+    s+=txt(270,193,'Objective evaluations','text-anchor="middle"');
+    const events=D.events.filter(e=>e.evaluations<=f.evaluations);
+    s+=path(events.map(e=>[cx(e.evaluations),cy(e.cost)]),'#087f8c');
+    s+=path(events.map(e=>[cx(e.evaluations),cy(e.best)]),'#7059b8','stroke-dasharray="5 4"');
+    s+=line(cx(f.evaluations),15,cx(f.evaluations),154,'#b1becc','stroke-dasharray="3 4"');
+    s+=`<circle cx="${cx(f.evaluations)}" cy="${cy(f.cost)}" r="4" fill="#087f8c"/>`;
+    $('curve').innerHTML=s;
+  }
+  function drawDiagnostic(f){
+    let s='';
+    if(ga&&f.population_costs){
+      const costs=f.population_costs,lo=Math.min(...costs),hi=Math.max(...costs),bins=12,counts=Array(bins).fill(0);
+      costs.forEach(v=>counts[Math.min(bins-1,Math.floor((v-lo)/Math.max(1,hi-lo)*bins))]++);
+      const max=Math.max(...counts);
+      counts.forEach((c,i)=>{const h=c/max*49;s+=`<rect x="${35+i*35}" y="${69-h}" width="29" height="${h}" fill="#7059b8" opacity=".7"/>`;});
+      s+=txt(35,12,'Population cost distribution · count')+txt(35,86,fmt(lo))+txt(451,86,fmt(hi),'text-anchor="end"');
+      s+=txt(35,108,`Distinct cycles: ${fmt(f.diversity*100)}% (rotations / reversals identified)`);
+    }else if(ga){
+      s+=txt(15,24,'Record population and cached costs to show GA diagnostics.');
+    }else if(sa&&f.temperature!==null){
+      const temp=f.temperature||0;
+      s+=txt(15,19,`Temperature: ${fmt(temp)}`)+txt(495,19,rawMaxT>0?`T / maximum T = ${fmt(temp/maxT*100)}%`:'No positive temperature recorded','text-anchor="end"');
+      s+='<rect x="15" y="30" width="480" height="10" rx="5" fill="#e1e8ef"/>';
+      s+=`<rect x="15" y="30" width="${480*temp/maxT}" height="10" rx="5" fill="#d26532"/>`;
+      const past=D.events.filter(e=>e.evaluations<=f.evaluations&&e.delta>0);
+      s+=txt(15,66,`Worse proposals accepted so far: ${past.filter(e=>e.accepted).length} / ${past.length}`);
+      s+=txt(15,91,'Explain the decision using your acceptance rule and schedule.');
+    }else if(sa){
+      const past=D.events.filter(e=>e.evaluations<=f.evaluations&&e.delta>0);
+      s+=txt(15,24,`Worse proposals accepted so far: ${past.filter(e=>e.accepted).length} / ${past.length}`);
+      s+=txt(15,52,'Every rise of the current curve is an accepted worse move.');
+      s+=txt(15,80,'Explain the decision using your acceptance rule and schedule.');
+    }else if(demo){
+      const past=D.events.filter(e=>e.evaluations<=f.evaluations&&e.accepted!==null);
+      s+=txt(15,24,`Accepted proposals so far: ${past.filter(e=>e.accepted).length} / ${past.length}`);
+      s+=txt(15,52,'Tour menu: Candidate shows the proposal, Best archived the archive.');
+      s+=txt(15,80,'Your algorithms will supply their own tours and diagnostics.');
+    }else{
+      const past=D.events.filter(e=>e.evaluations<=f.evaluations&&e.accepted!==null);
+      s+=txt(15,24,`Accepted recorded proposals: ${past.filter(e=>e.accepted).length} / ${past.length}`);
+      s+=txt(15,52,'A rejected proposal alone does not certify a local optimum.');
+      s+=txt(15,80,'State your neighborhood, selection rule, and stopping condition.');
+    }
+    $('diagnostic').innerHTML=s;
+  }
+  function render(){
+    const f=F[index];$('cost').textContent=fmt(f.cost);$('best').textContent=fmt(f.best);$('evaluation').textContent=`${f.evaluations} / ${D.total}`;
+    $('scrub').value=index;$('frame').textContent=`Frame ${index+1} / ${F.length}${ga&&f.generation!==null?' · generation '+f.generation:''}${index===F.length-1?` · end of the run · ${D.steps} steps`:''}`;
+    let title=f.accepted===null?'Recorded state':f.accepted?'Accepted':'Rejected';
+    const numbers=f.delta===null?'':`Δ = ${fmt(f.delta)} · candidate cost ${fmt(f.candidate_cost)}`;
+    let detail=f.note||numbers||'Recorded state.';
+    if(sa&&f.probability!==null)detail+=` · acceptance probability ${f.probability.toFixed(3)}`;
+    if(ga){title=f.generation===null?'Population state':`Generation ${f.generation}`;detail=f.note||'Recorded after your population update.';}
+    if(demo){title+=' · guided example';detail=numbers?`${numbers} · ${f.note}`:f.note;}
+    $('decision').innerHTML=`<b>${safe(title)}</b>${safe(detail)}`;
+    drawMap(f);drawCurve(f);drawDiagnostic(f);
+  }
+  function stop(){if(timer)clearInterval(timer);timer=null;$('play').textContent='Play';$('play').setAttribute('aria-label','Play animation');}
+  function play(){if(index===F.length-1)index=0;$('play').textContent='Pause';$('play').setAttribute('aria-label','Pause animation');render();timer=setInterval(()=>{if(index>=F.length-1){stop();return;}index++;render();},Number($('speed').value));}
+  $('play').onclick=()=>timer?stop():play();
+  $('back').onclick=()=>{stop();index=Math.max(0,index-1);render();};
+  $('forward').onclick=()=>{stop();index=Math.min(F.length-1,index+1);render();};
+  $('scrub').oninput=()=>{stop();index=Number($('scrub').value);render();};
+  $('speed').onchange=()=>{if(timer){stop();play();}};
+  for(const id of ['layout','route','focus'])$(id).onchange=()=>{stop();render();};
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)stop();});
+  render();
+})();
+</script></body></html>
